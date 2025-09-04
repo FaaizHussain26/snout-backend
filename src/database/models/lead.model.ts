@@ -7,6 +7,7 @@ export type DateType = "30min" | "60min";
 export interface IPetInformation {
   animal_type: AnimalType | string;
   other_name?: string;
+  quantity: number;
 }
 
 
@@ -23,7 +24,7 @@ export interface IContactDetails {
 
 export interface ILead extends Document<Types.ObjectId> {
   selected_service: SelectedService;
-  pet_information: IPetInformation;
+  pet_information: IPetInformation[];
   selected_dates: ISelectedDate[];
   address: string;
   contact_details: IContactDetails;
@@ -45,6 +46,11 @@ const PetInformationSchema = new Schema<IPetInformation>(
         return this.animal_type === "other_name";
       },
       trim: true,
+    },
+    quantity: {
+      type: Schema.Types.Number,
+      required: true,
+      min: 1,
     },
   },
   { _id: false }
@@ -72,9 +78,9 @@ const LeadSchema = new Schema<ILead>(
     selected_service: {
       type: Schema.Types.String,
       required: true,
-      enum: ["drop_in", "house_sitting", "walks", "pet_taxi"],
+      enum: ["drops_in", "house_sitting", "walks", "pet_taxi"],
     },
-    pet_information: { type: PetInformationSchema, required: true },
+    pet_information: { type: [PetInformationSchema], required: true, validate: (v: any) => Array.isArray(v) && v.length > 0 },
     selected_dates: { type: [SelectedDateSchema], required: true, validate: (v: any) => Array.isArray(v) && v.length > 0 },
     address: { type: Schema.Types.String, required: true, trim: true },
     contact_details: { type: ContactDetailsSchema, required: true },
