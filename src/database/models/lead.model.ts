@@ -1,15 +1,29 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 
-export type SelectedService = "drop_in" | "house_sitting" | "walks" | "pet_taxi";
-export type AnimalType = "dog" | "cat" | "farm_animal" | "bird" | "reptile" | "other_name";
-export type DateType = "30min" | "60min";
+export type SelectedService =
+  | "drop_in"
+  | "house_sitting"
+  | "walks"
+  | "pet_taxi";
+export type AnimalType =
+  | "dog"
+  | "cat"
+  | "farm_animal"
+  | "bird"
+  | "reptile"
+  | "other_name";
+export type DateType =
+  | "30min"
+  | "60min"
+  | "house_sitting_start"
+  | "house_sitting_end"
+  | "pet_taxi";
 
 export interface IPetInformation {
   animal_type: AnimalType | string;
   other_name?: string;
   quantity: number;
 }
-
 
 export interface ISelectedDate {
   type: DateType;
@@ -26,7 +40,11 @@ export interface ILead extends Document<Types.ObjectId> {
   selected_service: SelectedService;
   pet_information: IPetInformation[];
   selected_dates: ISelectedDate[];
-  address: string;
+  address?: string;
+  starting_point?: string;
+  ending_point?: string;
+  start_time?: string;
+  end_time?: string;
   contact_details: IContactDetails;
   specific_note?: string;
   createdAt: Date;
@@ -58,7 +76,17 @@ const PetInformationSchema = new Schema<IPetInformation>(
 
 const SelectedDateSchema = new Schema<ISelectedDate>(
   {
-    type: { type: Schema.Types.String, required: true, enum: ["30min", "60min"] },
+    type: {
+      type: Schema.Types.String,
+      required: true,
+      enum: [
+        "30min",
+        "60min",
+        "house_sitting_start",
+        "house_sitting_end",
+        "pet_taxi",
+      ],
+    },
     datetime: { type: Schema.Types.Date, required: true },
   },
   { _id: false }
@@ -78,15 +106,27 @@ const LeadSchema = new Schema<ILead>(
     selected_service: {
       type: Schema.Types.String,
       required: true,
-      enum: ["drops_in", "house_sitting", "walks", "pet_taxi"],
+      enum: ["drop_in", "house_sitting", "walks", "pet_taxi"],
     },
-    pet_information: { type: [PetInformationSchema], required: true, validate: (v: any) => Array.isArray(v) && v.length > 0 },
-    selected_dates: { type: [SelectedDateSchema], required: true, validate: (v: any) => Array.isArray(v) && v.length > 0 },
-    address: { type: Schema.Types.String, required: true, trim: true },
+    pet_information: {
+      type: [PetInformationSchema],
+      required: true,
+      validate: (v: any) => Array.isArray(v) && v.length > 0,
+    },
+    selected_dates: {
+      type: [SelectedDateSchema],
+      required: true,
+      validate: (v: any) => Array.isArray(v) && v.length > 0,
+    },
+    address: { type: Schema.Types.String, required: false, trim: true },
+    starting_point: { type: Schema.Types.String, required: false, trim: true },
+    ending_point: { type: Schema.Types.String, required: false, trim: true },
+    start_time: { type: Schema.Types.String, required: false, trim: true },
+    end_time: { type: Schema.Types.String, required: false, trim: true },
     contact_details: { type: ContactDetailsSchema, required: true },
     specific_note: { type: Schema.Types.String, required: false, trim: true },
   },
   { timestamps: true }
 );
 
-export const Lead = mongoose.models.Lead || mongoose.model<ILead>("leads", LeadSchema);
+export const Lead = mongoose.model<ILead>("leads", LeadSchema);
